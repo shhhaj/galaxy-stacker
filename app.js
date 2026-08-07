@@ -670,11 +670,35 @@ stackBtn.onclick=async function(){
 
 
     // 银河增强
+resultData =
+removeNoise(
+resultData
+);
 
-    resultData=
-    galaxyEnhance(
-        resultData
-    );
+
+resultData =
+colorBalance(
+resultData
+);
+
+
+resultData =
+protectGalaxyCore(
+resultData
+);
+
+
+resultData =
+galaxyEnhance(
+resultData
+);
+
+
+resultData =
+starSharpen(
+resultData
+);
+    
 
 
 
@@ -787,3 +811,212 @@ stackBtn.onclick=async function(){
 
 
 };
+// ==========================
+// V1.5 天文降噪
+// ==========================
+
+
+function removeNoise(imageData){
+
+let data=imageData.data;
+
+for(let y=1;y<imageData.height-1;y++){
+
+for(let x=1;x<imageData.width-1;x++){
+
+
+let i=(y*imageData.width+x)*4;
+
+
+let r=data[i];
+let g=data[i+1];
+let b=data[i+2];
+
+
+// 简单热像素检测
+
+if(
+r>245 &&
+g>245 &&
+b>245
+){
+
+let sumR=0;
+let sumG=0;
+let sumB=0;
+
+
+let count=0;
+
+
+for(let dy=-1;dy<=1;dy++){
+
+for(let dx=-1;dx<=1;dx++){
+
+
+let p=
+((y+dy)*imageData.width+x+dx)*4;
+
+
+sumR+=data[p];
+sumG+=data[p+1];
+sumB+=data[p+2];
+
+count++;
+
+}
+
+}
+
+
+data[i]=sumR/count;
+data[i+1]=sumG/count;
+data[i+2]=sumB/count;
+
+
+}
+
+
+}
+
+}
+
+
+return imageData;
+
+}
+
+
+
+// ==========================
+// 色彩校准
+// ==========================
+
+function colorBalance(imageData){
+
+let data=imageData.data;
+
+
+for(let i=0;i<data.length;i+=4){
+
+
+data[i]*=1.05;      // 红色增强银河暖色
+
+data[i+1]*=1.00;
+
+data[i+2]*=1.08;    // 蓝色增强星空
+
+
+
+data[i]=Math.min(255,data[i]);
+data[i+1]=Math.min(255,data[i+1]);
+data[i+2]=Math.min(255,data[i+2]);
+
+
+}
+
+
+return imageData;
+
+}// ==========================
+// V1.5 银河核心保护
+// ==========================
+
+function protectGalaxyCore(imageData){
+
+let data=imageData.data;
+
+
+for(let i=0;i<data.length;i+=4){
+
+
+let r=data[i];
+let g=data[i+1];
+let b=data[i+2];
+
+
+let light=
+(r+g+b)/3;
+
+
+
+// 银河核心高光保护
+
+if(light>180){
+
+let factor=0.85;
+
+
+data[i]=r*factor;
+data[i+1]=g*factor;
+data[i+2]=b*factor;
+
+
+}
+
+
+
+// 暗星提升
+
+if(light>25 && light<80){
+
+
+data[i]=r*1.08;
+data[i+1]=g*1.08;
+data[i+2]=b*1.12;
+
+
+}
+
+
+
+}
+
+
+return imageData;
+
+}
+
+
+
+
+// ==========================
+// 星空锐化
+// ==========================
+
+function starSharpen(imageData){
+
+let data=imageData.data;
+
+
+for(let i=0;i<data.length;i+=4){
+
+
+let r=data[i];
+let g=data[i+1];
+let b=data[i+2];
+
+
+let light=
+(r+g+b)/3;
+
+
+
+if(light>170){
+
+data[i]=Math.min(255,r*1.15);
+
+data[i+1]=Math.min(255,g*1.15);
+
+data[i+2]=Math.min(255,b*1.15);
+
+
+}
+
+
+}
+
+
+return imageData;
+
+}
