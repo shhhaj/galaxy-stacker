@@ -1,38 +1,33 @@
 // =====================================
-// Galaxy Stacker V5.1
-// Part 1
-// Fixed Stack Engine
+// Galaxy Stacker V5.2
+// Star Align + Smart Stack
+// Part 1/4
 // =====================================
 
 
 const input =
 document.getElementById("photoInput");
 
-
 const btn =
 document.getElementById("stackBtn");
-
 
 const preview =
 document.getElementById("preview");
 
-
 const count =
 document.getElementById("count");
-
 
 const info =
 document.getElementById("info");
 
-
 const bar =
 document.getElementById("progressBar");
-
 
 const result =
 document.getElementById("result");
 
 
+// 调节
 
 const exposure =
 document.getElementById("exposure");
@@ -45,7 +40,6 @@ document.getElementById("saturation");
 
 const galaxy =
 document.getElementById("galaxy");
-
 
 
 const expValue =
@@ -62,8 +56,8 @@ document.getElementById("galaxyValue");
 
 
 
-
 let photos=[];
+
 
 
 
@@ -75,7 +69,7 @@ let photos=[];
 
 input.addEventListener(
 "change",
-e=>{
+function(e){
 
 
 photos =
@@ -115,6 +109,7 @@ img.style.borderRadius="10px";
 preview.appendChild(img);
 
 
+
 });
 
 
@@ -142,11 +137,9 @@ new Image();
 
 
 
-img.onload=()=>{
-
+img.onload=function(){
 
 resolve(img);
-
 
 };
 
@@ -168,9 +161,9 @@ URL.createObjectURL(file);
 
 
 
+
 // =====================================
-// 降低超大图片尺寸
-// 手机优化
+// 手机优化缩放
 // =====================================
 
 
@@ -178,14 +171,15 @@ function resizeImage(img){
 
 
 
-let max=3000;
+let maxSize =
+2800;
 
 
 
 let scale =
 Math.min(
 1,
-max/img.width
+maxSize/img.width
 );
 
 
@@ -196,11 +190,16 @@ document.createElement("canvas");
 
 
 canvas.width =
-img.width*scale;
+Math.floor(
+img.width*scale
+);
+
 
 
 canvas.height =
-img.height*scale;
+Math.floor(
+img.height*scale
+);
 
 
 
@@ -235,54 +234,66 @@ return canvas;
 // =====================================
 
 
-function detectStars(data){
+function detectStars(image){
 
 
 
 let stars=[];
 
 
-let d=data.data;
+
+let data =
+image.data;
 
 
-let w=data.width;
+let w =
+image.width;
 
 
-let h=data.height;
+let h =
+image.height;
 
 
 
 for(
-let y=5;
-y<h-5;
-y+=4
+let y=10;
+y<h-10;
+y+=5
 ){
 
 
 
 for(
-let x=5;
-x<w-5;
-x+=4
+let x=10;
+x<w-10;
+x+=5
 ){
 
 
 
-let i =
+let p =
 (y*w+x)*4;
 
 
 
+let r=data[p];
+
+let g=data[p+1];
+
+let b=data[p+2];
+
+
+
 let light =
-(
-d[i]+
-d[i+1]+
-d[i+2]
-)/3;
+(r+g+b)/3;
 
 
 
-if(light>220){
+if(
+light>190 &&
+light<255
+){
+
 
 
 stars.push({
@@ -292,6 +303,7 @@ x:x,
 y:y,
 
 power:light
+
 
 });
 
@@ -303,7 +315,9 @@ power:light
 }
 
 
+
 }
+
 
 
 
@@ -316,8 +330,9 @@ b.power-a.power
 
 return stars.slice(
 0,
-100
+50
 );
+
 
 
 }
@@ -329,68 +344,327 @@ return stars.slice(
 
 
 // =====================================
-// 创建Canvas
+// 计算星点偏移
 // =====================================
 
 
-function createCanvas(w,h){
-
-
-let c =
-document.createElement("canvas");
-
-
-c.width=w;
-
-c.height=h;
-
-
-return c;
-
-
-}// =====================================
-// Galaxy Stacker V5.1
-// Part 2
-// Stack + Noise + Galaxy
-// =====================================
-
-
-
-// =====================================
-// 修正版平均堆栈
-// 防止灰图
-// =====================================
-
-
-function stackImages(
-images
+function calculateShift(
+base,
+target
 ){
 
 
 
-let width =
-images[0].width;
+if(
+base.length===0 ||
+target.length===0
+){
+
+return {
+
+x:0,
+
+y:0
+
+};
 
 
-let height =
-images[0].height;
+}
 
 
 
-let canvas =
-createCanvas(
-width,
-height
+let dx=0;
+
+let dy=0;
+
+let count=0;
+
+
+
+for(
+let i=0;
+i<Math.min(base.length,target.length);
+i++
+){
+
+
+
+dx +=
+target[i].x -
+base[i].x;
+
+
+
+dy +=
+target[i].y -
+base[i].y;
+
+
+
+count++;
+
+
+}
+
+
+
+return {
+
+
+x:
+dx/count,
+
+
+y:
+dy/count
+
+
+};
+
+
+
+}
+
+
+
+
+
+
+
+// =====================================
+// 平移图片
+// =====================================
+
+
+function shiftImage(
+canvas,
+x,
+y
+){
+
+
+let out =
+document.createElement("canvas");
+
+
+
+out.width =
+canvas.width;
+
+
+out.height =
+canvas.height;
+
+
+
+let ctx =
+out.getContext("2d");
+
+
+
+ctx.drawImage(
+canvas,
+x,
+y
 );
 
+
+
+return out;
+
+
+}// =====================================
+// Galaxy Stacker V5.2
+// Part 2/4
+// Star Align + Stack Core
+// =====================================
+
+
+
+
+// =====================================
+// 获取ImageData
+// =====================================
+
+
+function getImageData(canvas){
 
 
 let ctx =
 canvas.getContext("2d");
 
 
+return ctx.getImageData(
+0,
+0,
+canvas.width,
+canvas.height
+);
 
-let frames=[];
+
+}
+
+
+
+
+
+
+
+
+// =====================================
+// 自动星点对齐
+// =====================================
+
+
+async function alignImages(images){
+
+
+
+let aligned=[];
+
+
+
+// 第一张作为基准
+
+
+let baseCanvas =
+images[0];
+
+
+let baseData =
+getImageData(
+baseCanvas
+);
+
+
+
+let baseStars =
+detectStars(
+baseData
+);
+
+
+
+
+
+aligned.push(
+baseCanvas
+);
+
+
+
+
+
+
+for(
+let i=1;
+i<images.length;
+i++
+){
+
+
+
+let currentData =
+getImageData(
+images[i]
+);
+
+
+
+let stars =
+detectStars(
+currentData
+);
+
+
+
+let offset =
+calculateShift(
+baseStars,
+stars
+);
+
+
+
+
+
+let fixed =
+shiftImage(
+images[i],
+-offset.x,
+-offset.y
+);
+
+
+
+
+
+aligned.push(
+fixed
+);
+
+
+
+bar.style.width =
+(
+20+
+i/images.length*20
+)
++"%";
+
+
+
+info.innerHTML =
+"星点自动对齐 "+
+i+
+"/"+
+images.length;
+
+
+
+}
+
+
+
+return aligned;
+
+
+}
+
+
+
+
+
+
+
+
+// =====================================
+// 智能平均堆栈
+// =====================================
+
+
+async function stackAligned(
+images
+){
+
+
+
+let w =
+images[0].width;
+
+
+let h =
+images[0].height;
+
+
+
+
+let total =
+new Float64Array(
+w*h*4
+);
+
+
 
 
 
@@ -402,53 +676,41 @@ i++
 
 
 
-ctx.clearRect(
-0,
-0,
-width,
-height
-);
-
-
-
-ctx.drawImage(
-images[i],
-0,
-0,
-width,
-height
-);
-
-
-
 let data =
-ctx.getImageData(
-0,
-0,
-width,
-height
-);
+getImageData(
+images[i]
+).data;
 
 
 
-frames.push(
-data.data
-);
+
+for(
+let p=0;
+p<data.length;
+p++
+){
+
+
+
+total[p]+=data[p];
+
+
+}
+
 
 
 
 bar.style.width =
 (
-(i+1)/
-images.length*
-60
+40+
+i/images.length*35
 )
 +"%";
 
 
 
 info.innerHTML =
-"正在堆栈 "+
+"银河堆栈 "+
 (i+1)+
 "/"+
 images.length;
@@ -460,78 +722,50 @@ images.length;
 
 
 
-// ===============================
-// RGB平均
-// ===============================
 
 
 let output =
 new ImageData(
-width,
-height
+w,
+h
 );
+
+
 
 
 
 for(
 let p=0;
-p<width*height*4;
+p<total.length;
 p+=4
 ){
 
 
 
-let r=0;
-
-let g=0;
-
-let b=0;
+output.data[p]=
+total[p]/
+images.length;
 
 
 
-for(
-let i=0;
-i<frames.length;
-i++
-){
-
-
-r+=frames[i][p];
-
-g+=frames[i][p+1];
-
-b+=frames[i][p+2];
-
-
-}
+output.data[p+1]=
+total[p+1]/
+images.length;
 
 
 
-output.data[p]
-=
-r/frames.length;
+output.data[p+2]=
+total[p+2]/
+images.length;
 
 
 
-output.data[p+1]
-=
-g/frames.length;
-
-
-
-output.data[p+2]
-=
-b/frames.length;
-
-
-
-output.data[p+3]
-=
-255;
+output.data[p+3]=255;
 
 
 
 }
+
 
 
 
@@ -546,15 +780,17 @@ return output;
 
 
 
+
 // =====================================
-// 热噪点去除
+// 暗部降噪
 // =====================================
 
 
-function removeNoise(data){
+function noiseReduce(data){
 
 
-let d=data.data;
+let d =
+data.data;
 
 
 
@@ -566,7 +802,7 @@ i+=4
 
 
 
-let light=
+let light =
 (
 d[i]+
 d[i+1]+
@@ -575,15 +811,17 @@ d[i+2]
 
 
 
-if(light<20){
+if(
+light<30
+){
 
 
 
-d[i]*=0.9;
+d[i]*=0.88;
 
 d[i+1]*=0.9;
 
-d[i+2]*=0.95;
+d[i+2]*=0.94;
 
 
 
@@ -598,9 +836,11 @@ d[i+2]*=0.95;
 return data;
 
 
-}
-
-
+}// =====================================
+// Galaxy Stacker V5.2
+// Part 3/4
+// Color + Galaxy Enhancement
+// =====================================
 
 
 
@@ -608,14 +848,16 @@ return data;
 
 
 // =====================================
-// 光污染处理
+// 光污染去除
 // =====================================
 
 
-function removeLight(data){
+function removeLightPollution(data){
 
 
-let d=data.data;
+let d =
+data.data;
+
 
 
 let r=0;
@@ -628,11 +870,26 @@ let n=0;
 
 
 
+// 采样背景
+
 for(
 let i=0;
 i<d.length;
 i+=400
 ){
+
+
+
+let light =
+(
+d[i]+
+d[i+1]+
+d[i+2]
+)/3;
+
+
+
+if(light<120){
 
 
 r+=d[i];
@@ -642,6 +899,10 @@ g+=d[i+1];
 b+=d[i+2];
 
 n++;
+
+
+}
+
 
 
 }
@@ -669,12 +930,19 @@ i+=4
 ){
 
 
-d[i]-=br*0.35;
 
-d[i+1]-=bg*0.35;
+d[i]-=
+br*0.25;
 
-d[i+2]-=bb*0.35;
 
+
+d[i+1]-=
+bg*0.25;
+
+
+
+d[i+2]-=
+bb*0.25;
 
 
 
@@ -716,12 +984,13 @@ return data;
 
 
 
+
 // =====================================
-// 银河增强
+// 银河自然色彩恢复
 // =====================================
 
 
-function enhanceGalaxy(data){
+function galaxyColor(data){
 
 
 let d=data.data;
@@ -744,35 +1013,44 @@ let b=d[i+2];
 
 
 
-let light=
+let light =
 (r+g+b)/3;
 
 
 
 if(
-light>40 &&
-light<180
+light>35 &&
+light<170
 ){
 
 
 
-r*=1.12;
-
-g*=1.06;
-
-b*=1.18;
+// 自然银河色
 
 
+r*=1.06;
 
-// 蓝紫星云
 
-b+=8;
+g*=1.03;
 
-r+=3;
+
+b*=1.08;
+
+
+
+
+// 微弱紫蓝
+
+
+b+=5;
+
+r+=2;
 
 
 
 }
+
+
 
 
 
@@ -782,12 +1060,10 @@ r
 );
 
 
-
 d[i+1]=Math.min(
 255,
 g
 );
-
 
 
 d[i+2]=Math.min(
@@ -813,12 +1089,121 @@ return data;
 
 
 
+
+
+// =====================================
+// 银河局部增强
+// =====================================
+
+
+function enhanceMilkyWay(data){
+
+
+
+let d=data.data;
+
+
+
+for(
+let i=0;
+i<d.length;
+i+=4
+){
+
+
+
+let r=d[i];
+
+let g=d[i+1];
+
+let b=d[i+2];
+
+
+
+let light =
+(r+g+b)/3;
+
+
+
+if(
+light>45 &&
+light<160
+){
+
+
+
+let strength =
+0.18;
+
+
+
+r +=
+(r-128)*
+strength;
+
+
+
+g +=
+(g-128)*
+strength;
+
+
+
+b +=
+(b-128)*
+0.22;
+
+
+
+}
+
+
+
+
+d[i]=Math.max(
+0,
+Math.min(255,r)
+);
+
+
+
+d[i+1]=Math.max(
+0,
+Math.min(255,g)
+);
+
+
+
+d[i+2]=Math.max(
+0,
+Math.min(255,b)
+);
+
+
+
+}
+
+
+
+return data;
+
+
+}
+
+
+
+
+
+
+
+
+
 // =====================================
 // 星点保护
 // =====================================
 
 
-function starProtect(data){
+function createStarMask(data){
 
 
 let mask=[];
@@ -835,7 +1220,8 @@ i+=4
 ){
 
 
-let light=
+
+let light =
 (
 d[i]+
 d[i+1]+
@@ -863,7 +1249,10 @@ return mask;
 
 
 
-function restoreStars(
+
+
+
+function sharpenStars(
 data,
 mask
 ){
@@ -885,22 +1274,39 @@ i++
 if(mask[i]){
 
 
+
 let p=i*4;
 
 
-d[p]*=1.08;
 
-d[p+1]*=1.08;
-
-d[p+2]*=1.08;
+d[p]*=1.06;
 
 
+d[p+1]*=1.06;
 
-d[p]=Math.min(255,d[p]);
 
-d[p+1]=Math.min(255,d[p+1]);
+d[p+2]*=1.06;
 
-d[p+2]=Math.min(255,d[p+2]);
+
+
+
+d[p]=Math.min(
+255,
+d[p]
+);
+
+
+d[p+1]=Math.min(
+255,
+d[p+1]
+);
+
+
+d[p+2]=Math.min(
+255,
+d[p+2]
+);
+
 
 
 }
@@ -915,23 +1321,24 @@ return data;
 
 
 }// =====================================
-// Galaxy Stacker V5.1
-// Part 3
-// Main + Export + Slider
+// Galaxy Stacker V5.2
+// Part 4/4
+// Main Pipeline + Export
 // =====================================
 
 
 
 
 // =====================================
-// 基础调节
+// 曝光/对比/饱和调整
 // =====================================
 
 
 function adjustImage(data){
 
 
-let d=data.data;
+let d =
+data.data;
 
 
 
@@ -956,18 +1363,18 @@ saturation?.value || 100
 
 
 
-let gal =
-Number(
-galaxy?.value || 100
-)/100;
-
-
-
-let expFactor =
+let expPower =
 Math.pow(
 2,
 exp
 );
+
+
+
+let contrastPower =
+(con+100)/100;
+
+
 
 
 
@@ -990,41 +1397,38 @@ let b=d[i+2];
 
 // 曝光
 
-r*=expFactor;
+r*=expPower;
 
-g*=expFactor;
+g*=expPower;
 
-b*=expFactor;
-
-
+b*=expPower;
 
 
 
-// 对比度
 
-let c =
-(con+100)/100;
 
+// 对比
 
 r =
-(r-128)*c+128;
+(r-128)*contrastPower+128;
 
 
 g =
-(g-128)*c+128;
+(g-128)*contrastPower+128;
 
 
 b =
-(b-128)*c+128;
+(b-128)*contrastPower+128;
 
 
 
 
 
-// 饱和度
+// 饱和
 
 let gray =
 (r+g+b)/3;
+
 
 
 r =
@@ -1038,17 +1442,6 @@ gray+(g-gray)*sat;
 b =
 gray+(b-gray)*sat;
 
-
-
-
-
-// 银河强度
-
-r*=gal;
-
-g*=gal;
-
-b*=gal;
 
 
 
@@ -1088,6 +1481,7 @@ return data;
 
 
 
+
 // =====================================
 // 主按钮
 // =====================================
@@ -1106,9 +1500,12 @@ alert(
 "请至少选择2张照片"
 );
 
+
 return;
 
+
 }
+
 
 
 
@@ -1117,11 +1514,12 @@ btn.disabled=true;
 
 
 info.innerHTML=
-"读取照片...";
+"正在读取照片...";
 
 
 
 let images=[];
+
 
 
 
@@ -1148,14 +1546,15 @@ photos[i]
 
 
 
-// 缩小超大照片
+let canvas =
+resizeImage(
+img
+);
 
-let small =
-resizeImage(img);
 
 
 images.push(
-small
+canvas
 );
 
 
@@ -1167,12 +1566,14 @@ small
 
 
 info.innerHTML=
-"银河堆栈处理中...";
+"星点自动对齐...";
 
 
 
-let output =
-await stackImages(
+// 自动星点校准
+
+let aligned =
+await alignImages(
 images
 );
 
@@ -1180,8 +1581,29 @@ images
 
 
 
+
+
 info.innerHTML=
-"AI银河优化...";
+"银河堆栈中...";
+
+
+
+// 堆栈
+
+let output =
+await stackAligned(
+aligned
+);
+
+
+
+
+
+
+
+info.innerHTML=
+"银河智能优化...";
+
 
 
 
@@ -1189,36 +1611,45 @@ info.innerHTML=
 // 处理流程
 
 
-let stars =
-starProtect(output);
-
-
-
-output =
-removeLight(
+let starMask =
+createStarMask(
 output
 );
 
 
 
 output =
-removeNoise(
+removeLightPollution(
 output
 );
 
 
 
 output =
-enhanceGalaxy(
+noiseReduce(
 output
 );
 
 
 
 output =
-restoreStars(
+galaxyColor(
+output
+);
+
+
+
+output =
+enhanceMilkyWay(
+output
+);
+
+
+
+output =
+sharpenStars(
 output,
-stars
+starMask
 );
 
 
@@ -1233,7 +1664,12 @@ output
 
 
 
+
+// =====================================
 // 输出
+// =====================================
+
+
 
 let canvas =
 createCanvas(
@@ -1279,7 +1715,9 @@ img.src=url;
 img.style.width="95%";
 
 
+
 result.appendChild(img);
+
 
 
 
@@ -1294,12 +1732,13 @@ document.createElement("a");
 link.href=url;
 
 
-link.download=
-"Galaxy_Stack_V5.1.png";
+link.download =
+"Galaxy_Stack_V5.2.png";
 
 
-link.innerHTML=
-"下载银河高清PNG";
+
+link.innerHTML =
+"下载 Galaxy V5.2 高清PNG";
 
 
 
@@ -1309,12 +1748,13 @@ result.appendChild(link);
 
 
 
+
 bar.style.width="100%";
 
 
 
-info.innerHTML=
-"Galaxy Stacker V5.1 完成 ✨";
+info.innerHTML =
+"Galaxy Stacker V5.2 完成 ✨";
 
 
 
@@ -1330,16 +1770,18 @@ btn.disabled=false;
 
 
 
+
 // =====================================
 // 滑块显示
 // =====================================
 
 
-function bindSlider(
+function sliderText(
 slider,
 text,
-suffix=""
+unit=""
 ){
+
 
 
 if(
@@ -1349,20 +1791,18 @@ text
 
 
 
-slider.oninput =
-()=>{
+slider.oninput=function(){
 
 
 text.innerHTML =
 slider.value+
-suffix;
+unit;
 
 
 
 };
 
 
-
 }
 
 
@@ -1371,27 +1811,30 @@ suffix;
 
 
 
-bindSlider(
+sliderText(
 exposure,
 expValue,
 " EV"
 );
 
 
-bindSlider(
+
+sliderText(
 contrast,
 contrastValue
 );
 
 
-bindSlider(
+
+sliderText(
 saturation,
 satValue,
 "%"
 );
 
 
-bindSlider(
+
+sliderText(
 galaxy,
 galaxyValue,
 "%"
