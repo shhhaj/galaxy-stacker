@@ -57,7 +57,9 @@ return;
 
 
 info.innerHTML="正在银河堆栈处理中...";
+let bar=document.getElementById("progressBar");
 
+bar.style.width="10%";
 
 let canvas=document.createElement("canvas");
 
