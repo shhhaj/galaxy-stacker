@@ -1,382 +1,276 @@
 // =====================================
-// Galaxy Stacker V5.0
+// Galaxy Stacker V5.1
 // Part 1
-// Core Engine
-// Star Detect + Alignment + Buffer
+// Fixed Stack Engine
 // =====================================
 
 
-const input = document.getElementById("photoInput");
-const btn = document.getElementById("stackBtn");
-const preview = document.getElementById("preview");
-const count = document.getElementById("count");
-const info = document.getElementById("info");
-const bar = document.getElementById("progressBar");
-const result = document.getElementById("result");
+const input =
+document.getElementById("photoInput");
 
 
-let photos = [];
+const btn =
+document.getElementById("stackBtn");
 
 
-// ===============================
+const preview =
+document.getElementById("preview");
+
+
+const count =
+document.getElementById("count");
+
+
+const info =
+document.getElementById("info");
+
+
+const bar =
+document.getElementById("progressBar");
+
+
+const result =
+document.getElementById("result");
+
+
+
+const exposure =
+document.getElementById("exposure");
+
+const contrast =
+document.getElementById("contrast");
+
+const saturation =
+document.getElementById("saturation");
+
+const galaxy =
+document.getElementById("galaxy");
+
+
+
+const expValue =
+document.getElementById("expValue");
+
+const contrastValue =
+document.getElementById("contrastValue");
+
+const satValue =
+document.getElementById("satValue");
+
+const galaxyValue =
+document.getElementById("galaxyValue");
+
+
+
+
+let photos=[];
+
+
+
+
+// =====================================
 // 图片选择
-// ===============================
+// =====================================
 
-input.addEventListener("change",e=>{
 
-    photos=[...e.target.files];
+input.addEventListener(
+"change",
+e=>{
 
-    count.innerHTML =
-    "已选择："+photos.length+" 张照片";
 
-    preview.innerHTML="";
+photos =
+Array.from(
+e.target.files
+);
 
-    photos.forEach(file=>{
 
-        let img=document.createElement("img");
 
-        img.src=URL.createObjectURL(file);
+count.innerHTML =
+"已选择："+photos.length+" 张照片";
 
-        img.style.width="120px";
-        img.style.margin="5px";
-        img.style.borderRadius="10px";
 
-        preview.appendChild(img);
 
-    });
+preview.innerHTML="";
+
+
+
+photos.forEach(file=>{
+
+
+let img =
+document.createElement("img");
+
+
+img.src =
+URL.createObjectURL(file);
+
+
+img.style.width="120px";
+
+img.style.margin="5px";
+
+img.style.borderRadius="10px";
+
+
+preview.appendChild(img);
+
+
+});
+
 
 });
 
 
 
-// ===============================
-// 读取图片
-// ===============================
+
+
+
+
+// =====================================
+// 图片读取
+// =====================================
+
 
 function readImage(file){
 
+
 return new Promise(resolve=>{
 
-let img=new Image();
 
-img.onload=()=>resolve(img);
+let img =
+new Image();
 
-img.src=URL.createObjectURL(file);
+
+
+img.onload=()=>{
+
+
+resolve(img);
+
+
+};
+
+
+
+img.src =
+URL.createObjectURL(file);
+
+
 
 });
+
 
 }
 
 
 
-// ===============================
-// 星点检测 V5
-// ===============================
+
+
+
+
+// =====================================
+// 降低超大图片尺寸
+// 手机优化
+// =====================================
+
+
+function resizeImage(img){
+
+
+
+let max=3000;
+
+
+
+let scale =
+Math.min(
+1,
+max/img.width
+);
+
+
+
+let canvas =
+document.createElement("canvas");
+
+
+
+canvas.width =
+img.width*scale;
+
+
+canvas.height =
+img.height*scale;
+
+
+
+let ctx =
+canvas.getContext("2d");
+
+
+
+ctx.drawImage(
+img,
+0,
+0,
+canvas.width,
+canvas.height
+);
+
+
+
+return canvas;
+
+
+}
+
+
+
+
+
+
+
+// =====================================
+// 星点检测
+// =====================================
+
 
 function detectStars(data){
 
+
+
 let stars=[];
+
 
 let d=data.data;
 
+
 let w=data.width;
 
+
 let h=data.height;
+
 
 
 for(
 let y=5;
 y<h-5;
-y+=3
+y+=4
 ){
+
+
 
 for(
 let x=5;
 x<w-5;
-x+=3
+x+=4
 ){
 
 
-let i=(y*w+x)*4;
 
+let i =
+(y*w+x)*4;
 
-let r=d[i];
-let g=d[i+1];
-let b=d[i+2];
-
-
-let light=(r+g+b)/3;
-
-
-
-// 亮星
-
-if(light>210){
-
-let around=0;
-
-
-for(
-let yy=-1;
-yy<=1;
-yy++
-){
-
-for(
-let xx=-1;
-xx<=1;
-xx++
-){
-
-let p=
-((y+yy)*w+x+xx)*4;
-
-
-around+=
-(
-d[p]+d[p+1]+d[p+2]
-)/3;
-
-}
-
-}
-
-
-if(
-light-(around/9)>50
-){
-
-stars.push({
-
-x:x,
-y:y,
-power:light
-
-});
-
-}
-
-
-}
-
-
-
-}
-
-
-}
-
-
-stars.sort(
-(a,b)=>b.power-a.power
-);
-
-
-return stars.slice(0,80);
-
-}
-
-
-
-
-// ===============================
-// 星点偏移计算
-// ===============================
-
-function getOffset(base,target){
-
-
-let dx=0;
-let dy=0;
-
-let n=Math.min(
-base.length,
-target.length
-);
-
-
-for(
-let i=0;
-i<n;
-i++
-){
-
-dx+=target[i].x-base[i].x;
-
-dy+=target[i].y-base[i].y;
-
-}
-
-
-return {
-
-x:dx/n,
-y:dy/n
-
-};
-
-
-}
-
-
-
-// ===============================
-// 自动星点校准绘制
-// ===============================
-
-function drawAligned(
-ctx,
-img,
-offset
-){
-
-
-ctx.drawImage(
-
-img,
-
--offset.x,
-
--offset.y
-
-);
-
-
-}
-
-
-
-// ===============================
-// 创建输出
-// ===============================
-
-function createCanvas(
-w,
-h
-){
-
-let c=document.createElement("canvas");
-
-c.width=w;
-c.height=h;
-
-return c;
-
-}// =====================================
-// Galaxy Stacker V5.0
-// Part 2
-// Sigma Stack + Noise + Galaxy Processing
-// =====================================
-
-
-// ===============================
-// Sigma Clipping 堆栈
-// 去除飞机/卫星/异常噪点
-// ===============================
-
-function sigmaStack(frames,w,h){
-
-
-let output =
-new ImageData(w,h);
-
-
-for(
-let p=0;
-p<w*h*4;
-p+=4
-){
-
-
-let r=[];
-let g=[];
-let b=[];
-
-
-
-for(
-let i=0;
-i<frames.length;
-i++
-){
-
-r.push(frames[i][p]);
-g.push(frames[i][p+1]);
-b.push(frames[i][p+2]);
-
-}
-
-
-// 排序
-
-r.sort((a,b)=>a-b);
-g.sort((a,b)=>a-b);
-b.sort((a,b)=>a-b);
-
-
-
-// 去掉最高最低异常值
-
-if(r.length>4){
-
-r.shift();
-r.pop();
-
-g.shift();
-g.pop();
-
-b.shift();
-b.pop();
-
-}
-
-
-
-// 中位平均
-
-let rs =
-r.reduce((a,b)=>a+b,0)/r.length;
-
-let gs =
-g.reduce((a,b)=>a+b,0)/g.length;
-
-let bs =
-b.reduce((a,b)=>a+b,0)/b.length;
-
-
-
-output.data[p]=rs;
-output.data[p+1]=gs;
-output.data[p+2]=bs;
-output.data[p+3]=255;
-
-
-}
-
-
-return output;
-
-}
-
-
-
-
-
-// ===============================
-// 暗部智能降噪
-// ===============================
-
-function aiNoiseReduce(data){
-
-
-let d=data.data;
-
-
-for(
-let i=0;
-i<d.length;
-i+=4
-){
 
 
 let light =
@@ -388,95 +282,22 @@ d[i+2]
 
 
 
-if(light<35){
+if(light>220){
 
 
-d[i]*=0.86;
+stars.push({
 
-d[i+1]*=0.86;
+x:x,
 
-d[i+2]*=0.90;
+y:y,
 
+power:light
 
-}
-
-
-// 防止黑死
-
-d[i]=Math.max(0,d[i]);
-d[i+1]=Math.max(0,d[i+1]);
-d[i+2]=Math.max(0,d[i+2]);
+});
 
 
 }
 
-
-return data;
-
-
-}
-
-
-
-
-
-// ===============================
-// 光污染渐变去除
-// ===============================
-
-function removeGradient(data){
-
-
-let d=data.data;
-
-let w=data.width;
-
-let h=data.height;
-
-
-let br=0;
-let bg=0;
-let bb=0;
-
-let count=0;
-
-
-
-for(
-let y=0;
-y<h;
-y+=30
-){
-
-for(
-let x=0;
-x<w;
-x+=30
-){
-
-
-let i=(y*w+x)*4;
-
-
-let light=
-(
-d[i]+
-d[i+1]+
-d[i+2]
-)/3;
-
-
-
-if(light<100){
-
-
-br+=d[i];
-
-bg+=d[i+1];
-
-bb+=d[i+2];
-
-count++;
 
 
 }
@@ -484,50 +305,18 @@ count++;
 
 }
 
-}
+
+
+stars.sort(
+(a,b)=>
+b.power-a.power
+);
 
 
 
-if(count===0)
-return data;
-
-
-
-br/=count;
-bg/=count;
-bb/=count;
-
-
-
-
-for(
-let i=0;
-i<d.length;
-i+=4
-){
-
-
-d[i]-=br*0.45;
-d[i+1]-=bg*0.45;
-d[i+2]-=bb*0.45;
-
-
-
-d[i]=Math.max(
+return stars.slice(
 0,
-Math.min(255,d[i])
-);
-
-
-d[i+1]=Math.max(
-0,
-Math.min(255,d[i+1])
-);
-
-
-d[i+2]=Math.max(
-0,
-Math.min(255,d[i+2])
+100
 );
 
 
@@ -535,246 +324,73 @@ Math.min(255,d[i+2])
 
 
 
-return data;
 
-}
 
 
 
-
-
-// ===============================
-// 银河 Mask 增强
-// ===============================
-
-function galaxyBoost(data){
-
-
-let d=data.data;
-
-
-for(
-let i=0;
-i<d.length;
-i+=4
-){
-
-
-
-let r=d[i];
-let g=d[i+1];
-let b=d[i+2];
-
-
-let light=
-(r+g+b)/3;
-
-
-
-let weight=0;
-
-
-
-if(
-light>35 &&
-light<170
-){
-
-weight=1;
-
-}
-
-
-
-// 蓝紫星云
-
-if(
-b>g &&
-b>r
-){
-
-weight+=0.25;
-
-}
-
-
-
-if(weight>1)
-weight=1;
-
-
-
-if(weight>0){
-
-
-r+=r*0.15*weight;
-
-g+=g*0.08*weight;
-
-b+=b*0.25*weight;
-
-
-
-// 星云色彩
-
-b+=12*weight;
-
-r+=5*weight;
-
-
-}
-
-
-
-
-d[i]=Math.min(255,r);
-d[i+1]=Math.min(255,g);
-d[i+2]=Math.min(255,b);
-
-
-
-}
-
-
-
-return data;
-
-}
-
-
-
-
-
-// ===============================
-// 星点保护
-// ===============================
-
-function protectStars(data){
-
-
-let mask=[];
-
-let d=data.data;
-
-
-
-for(
-let i=0;
-i<d.length;
-i+=4
-){
-
-
-let light=
-(
-d[i]+d[i+1]+d[i+2]
-)/3;
-
-
-
-mask.push(
-light>210
-);
-
-
-}
-
-
-
-return mask;
-
-}
-
-
-
-
-
-function restoreStars(data,mask){
-
-
-let d=data.data;
-
-
-for(
-let i=0;
-i<mask.length;
-i++
-){
-
-
-if(mask[i]){
-
-
-let p=i*4;
-
-
-d[p]*=1.1;
-d[p+1]*=1.1;
-d[p+2]*=1.1;
-
-
-d[p]=Math.min(255,d[p]);
-d[p+1]=Math.min(255,d[p+1]);
-d[p+2]=Math.min(255,d[p+2]);
-
-
-}
-
-
-}
-
-
-return data;
-
-}// =====================================
-// Galaxy Stacker V5.0
-// Part 3
-// Main Pipeline + Export
+// =====================================
+// 创建Canvas
 // =====================================
 
 
-// ===============================
-// 主堆栈流程
-// ===============================
-
-async function stackImages(images){
+function createCanvas(w,h){
 
 
-let canvas=createCanvas(
-images[0].width,
-images[0].height
+let c =
+document.createElement("canvas");
+
+
+c.width=w;
+
+c.height=h;
+
+
+return c;
+
+
+}// =====================================
+// Galaxy Stacker V5.1
+// Part 2
+// Stack + Noise + Galaxy
+// =====================================
+
+
+
+// =====================================
+// 修正版平均堆栈
+// 防止灰图
+// =====================================
+
+
+function stackImages(
+images
+){
+
+
+
+let width =
+images[0].width;
+
+
+let height =
+images[0].height;
+
+
+
+let canvas =
+createCanvas(
+width,
+height
 );
 
 
-let ctx=canvas.getContext("2d");
+
+let ctx =
+canvas.getContext("2d");
+
 
 
 let frames=[];
-
-
-
-// 第一张作为基准
-
-ctx.drawImage(
-images[0],
-0,
-0
-);
-
-
-let base=
-ctx.getImageData(
-0,
-0,
-canvas.width,
-canvas.height
-);
-
-
-let baseStars=
-detectStars(base);
-
-
 
 
 
@@ -785,11 +401,12 @@ i++
 ){
 
 
+
 ctx.clearRect(
 0,
 0,
-canvas.width,
-canvas.height
+width,
+height
 );
 
 
@@ -797,22 +414,26 @@ canvas.height
 ctx.drawImage(
 images[i],
 0,
-0
+0,
+width,
+height
 );
 
 
 
-let frame=
+let data =
 ctx.getImageData(
 0,
 0,
-canvas.width,
-canvas.height
+width,
+height
 );
 
 
 
-frames.push(frame.data);
+frames.push(
+data.data
+);
 
 
 
@@ -825,11 +446,13 @@ images.length*
 +"%";
 
 
+
 info.innerHTML =
-"星点校准 "+
+"正在堆栈 "+
 (i+1)+
 "/"+
 images.length;
+
 
 
 }
@@ -837,14 +460,78 @@ images.length;
 
 
 
-// Sigma 堆栈
+// ===============================
+// RGB平均
+// ===============================
+
 
 let output =
-sigmaStack(
-frames,
-canvas.width,
-canvas.height
+new ImageData(
+width,
+height
 );
+
+
+
+for(
+let p=0;
+p<width*height*4;
+p+=4
+){
+
+
+
+let r=0;
+
+let g=0;
+
+let b=0;
+
+
+
+for(
+let i=0;
+i<frames.length;
+i++
+){
+
+
+r+=frames[i][p];
+
+g+=frames[i][p+1];
+
+b+=frames[i][p+2];
+
+
+}
+
+
+
+output.data[p]
+=
+r/frames.length;
+
+
+
+output.data[p+1]
+=
+g/frames.length;
+
+
+
+output.data[p+2]
+=
+b/frames.length;
+
+
+
+output.data[p+3]
+=
+255;
+
+
+
+}
 
 
 
@@ -857,35 +544,17 @@ return output;
 
 
 
-// ===============================
-// 曝光 对比 饱和
-// ===============================
 
-function basicAdjust(data){
+
+// =====================================
+// 热噪点去除
+// =====================================
+
+
+function removeNoise(data){
 
 
 let d=data.data;
-
-
-
-let exp=
-Number(
-document.getElementById("exposure")?.value || 100
-)/100;
-
-
-
-let con=
-Number(
-document.getElementById("contrast")?.value || 100
-)/100;
-
-
-
-let sat=
-Number(
-document.getElementById("saturation")?.value || 100
-)/100;
 
 
 
@@ -896,46 +565,34 @@ i+=4
 ){
 
 
-let r=d[i]*exp;
-let g=d[i+1]*exp;
-let b=d[i+2]*exp;
+
+let light=
+(
+d[i]+
+d[i+1]+
+d[i+2]
+)/3;
 
 
 
-// contrast
-
-r=(r-128)*con+128;
-g=(g-128)*con+128;
-b=(b-128)*con+128;
+if(light<20){
 
 
 
-// saturation
+d[i]*=0.9;
 
-let gray=
-(r+g+b)/3;
+d[i+1]*=0.9;
 
-
-
-r=
-gray+(r-gray)*sat;
-
-g=
-gray+(g-gray)*sat;
-
-b=
-gray+(b-gray)*sat;
-
-
-
-
-d[i]=Math.max(0,Math.min(255,r));
-d[i+1]=Math.max(0,Math.min(255,g));
-d[i+2]=Math.max(0,Math.min(255,b));
+d[i+2]*=0.95;
 
 
 
 }
+
+
+
+}
+
 
 
 return data;
@@ -949,12 +606,496 @@ return data;
 
 
 
-// ===============================
-// 开始按钮
-// ===============================
 
-btn.onclick=
+// =====================================
+// 光污染处理
+// =====================================
+
+
+function removeLight(data){
+
+
+let d=data.data;
+
+
+let r=0;
+
+let g=0;
+
+let b=0;
+
+let n=0;
+
+
+
+for(
+let i=0;
+i<d.length;
+i+=400
+){
+
+
+r+=d[i];
+
+g+=d[i+1];
+
+b+=d[i+2];
+
+n++;
+
+
+}
+
+
+
+if(n===0)
+return data;
+
+
+
+let br=r/n;
+
+let bg=g/n;
+
+let bb=b/n;
+
+
+
+
+for(
+let i=0;
+i<d.length;
+i+=4
+){
+
+
+d[i]-=br*0.35;
+
+d[i+1]-=bg*0.35;
+
+d[i+2]-=bb*0.35;
+
+
+
+
+d[i]=Math.max(
+0,
+Math.min(255,d[i])
+);
+
+
+
+d[i+1]=Math.max(
+0,
+Math.min(255,d[i+1])
+);
+
+
+
+d[i+2]=Math.max(
+0,
+Math.min(255,d[i+2])
+);
+
+
+
+}
+
+
+
+return data;
+
+
+}
+
+
+
+
+
+
+
+
+
+// =====================================
+// 银河增强
+// =====================================
+
+
+function enhanceGalaxy(data){
+
+
+let d=data.data;
+
+
+
+for(
+let i=0;
+i<d.length;
+i+=4
+){
+
+
+
+let r=d[i];
+
+let g=d[i+1];
+
+let b=d[i+2];
+
+
+
+let light=
+(r+g+b)/3;
+
+
+
+if(
+light>40 &&
+light<180
+){
+
+
+
+r*=1.12;
+
+g*=1.06;
+
+b*=1.18;
+
+
+
+// 蓝紫星云
+
+b+=8;
+
+r+=3;
+
+
+
+}
+
+
+
+d[i]=Math.min(
+255,
+r
+);
+
+
+
+d[i+1]=Math.min(
+255,
+g
+);
+
+
+
+d[i+2]=Math.min(
+255,
+b
+);
+
+
+
+}
+
+
+
+return data;
+
+
+}
+
+
+
+
+
+
+
+
+// =====================================
+// 星点保护
+// =====================================
+
+
+function starProtect(data){
+
+
+let mask=[];
+
+
+let d=data.data;
+
+
+
+for(
+let i=0;
+i<d.length;
+i+=4
+){
+
+
+let light=
+(
+d[i]+
+d[i+1]+
+d[i+2]
+)/3;
+
+
+
+mask.push(
+light>210
+);
+
+
+
+}
+
+
+
+return mask;
+
+
+}
+
+
+
+
+
+function restoreStars(
+data,
+mask
+){
+
+
+
+let d=data.data;
+
+
+
+for(
+let i=0;
+i<mask.length;
+i++
+){
+
+
+
+if(mask[i]){
+
+
+let p=i*4;
+
+
+d[p]*=1.08;
+
+d[p+1]*=1.08;
+
+d[p+2]*=1.08;
+
+
+
+d[p]=Math.min(255,d[p]);
+
+d[p+1]=Math.min(255,d[p+1]);
+
+d[p+2]=Math.min(255,d[p+2]);
+
+
+}
+
+
+
+}
+
+
+
+return data;
+
+
+}// =====================================
+// Galaxy Stacker V5.1
+// Part 3
+// Main + Export + Slider
+// =====================================
+
+
+
+
+// =====================================
+// 基础调节
+// =====================================
+
+
+function adjustImage(data){
+
+
+let d=data.data;
+
+
+
+let exp =
+Number(
+exposure?.value || 0
+);
+
+
+
+let con =
+Number(
+contrast?.value || 0
+);
+
+
+
+let sat =
+Number(
+saturation?.value || 100
+)/100;
+
+
+
+let gal =
+Number(
+galaxy?.value || 100
+)/100;
+
+
+
+let expFactor =
+Math.pow(
+2,
+exp
+);
+
+
+
+for(
+let i=0;
+i<d.length;
+i+=4
+){
+
+
+
+let r=d[i];
+
+let g=d[i+1];
+
+let b=d[i+2];
+
+
+
+
+// 曝光
+
+r*=expFactor;
+
+g*=expFactor;
+
+b*=expFactor;
+
+
+
+
+
+// 对比度
+
+let c =
+(con+100)/100;
+
+
+r =
+(r-128)*c+128;
+
+
+g =
+(g-128)*c+128;
+
+
+b =
+(b-128)*c+128;
+
+
+
+
+
+// 饱和度
+
+let gray =
+(r+g+b)/3;
+
+
+r =
+gray+(r-gray)*sat;
+
+
+g =
+gray+(g-gray)*sat;
+
+
+b =
+gray+(b-gray)*sat;
+
+
+
+
+
+// 银河强度
+
+r*=gal;
+
+g*=gal;
+
+b*=gal;
+
+
+
+
+
+d[i]=Math.max(
+0,
+Math.min(255,r)
+);
+
+
+d[i+1]=Math.max(
+0,
+Math.min(255,g)
+);
+
+
+d[i+2]=Math.max(
+0,
+Math.min(255,b)
+);
+
+
+
+}
+
+
+
+return data;
+
+
+}
+
+
+
+
+
+
+
+// =====================================
+// 主按钮
+// =====================================
+
+
+btn.onclick =
 async function(){
+
 
 
 if(
@@ -962,7 +1103,7 @@ photos.length<2
 ){
 
 alert(
-"请至少选择2张银河照片"
+"请至少选择2张照片"
 );
 
 return;
@@ -974,6 +1115,7 @@ return;
 btn.disabled=true;
 
 
+
 info.innerHTML=
 "读取照片...";
 
@@ -982,13 +1124,40 @@ info.innerHTML=
 let images=[];
 
 
+
 for(
-let file of photos
+let i=0;
+i<photos.length;
+i++
 ){
 
-images.push(
-await readImage(file)
+
+
+info.innerHTML=
+"读取照片 "+
+(i+1)+
+"/"+
+photos.length;
+
+
+
+let img =
+await readImage(
+photos[i]
 );
+
+
+
+// 缩小超大照片
+
+let small =
+resizeImage(img);
+
+
+images.push(
+small
+);
+
 
 
 }
@@ -996,49 +1165,69 @@ await readImage(file)
 
 
 
+
 info.innerHTML=
-"银河天文堆栈处理中...";
+"银河堆栈处理中...";
 
 
 
 let output =
-await stackImages(images);
+await stackImages(
+images
+);
 
 
 
 
-// 处理链
+
+info.innerHTML=
+"AI银河优化...";
+
+
+
+
+// 处理流程
+
+
+let stars =
+starProtect(output);
+
 
 
 output =
-removeGradient(output);
-
-
-output =
-aiNoiseReduce(output);
-
-
-
-let starMask =
-protectStars(output);
+removeLight(
+output
+);
 
 
 
 output =
-galaxyBoost(output);
+removeNoise(
+output
+);
+
+
+
+output =
+enhanceGalaxy(
+output
+);
 
 
 
 output =
 restoreStars(
 output,
-starMask
+stars
 );
 
 
 
 output =
-basicAdjust(output);
+adjustImage(
+output
+);
+
 
 
 
@@ -1046,7 +1235,7 @@ basicAdjust(output);
 
 // 输出
 
-let canvas=
+let canvas =
 createCanvas(
 output.width,
 output.height
@@ -1054,7 +1243,7 @@ output.height
 
 
 
-let ctx=
+let ctx =
 canvas.getContext("2d");
 
 
@@ -1067,7 +1256,7 @@ output,
 
 
 
-let url=
+let url =
 canvas.toDataURL(
 "image/png",
 1
@@ -1079,8 +1268,9 @@ result.innerHTML="";
 
 
 
-let img=
+let img =
 document.createElement("img");
+
 
 
 img.src=url;
@@ -1094,19 +1284,22 @@ result.appendChild(img);
 
 
 
-let link=
+
+
+let link =
 document.createElement("a");
+
 
 
 link.href=url;
 
 
 link.download=
-"Galaxy_Stack_V5.0.png";
+"Galaxy_Stack_V5.1.png";
 
 
 link.innerHTML=
-"下载 Galaxy V5.0 高清银河PNG";
+"下载银河高清PNG";
 
 
 
@@ -1114,48 +1307,92 @@ result.appendChild(link);
 
 
 
+
+
 bar.style.width="100%";
 
 
+
 info.innerHTML=
-"Galaxy Stacker V5.0 完成 ✨";
+"Galaxy Stacker V5.1 完成 ✨";
 
 
 
 btn.disabled=false;
 
 
+
 };
 
 
 
-// ===============================
+
+
+
+
+// =====================================
 // 滑块显示
-// ===============================
-
-[
-["exposure","expValue"],
-["contrast","contrastValue"],
-["saturation","satValue"],
-["galaxy","galaxyValue"]
-
-].forEach(x=>{
+// =====================================
 
 
-let a=document.getElementById(x[0]);
-let b=document.getElementById(x[1]);
+function bindSlider(
+slider,
+text,
+suffix=""
+){
 
 
-if(a&&b){
+if(
+slider &&
+text
+){
 
-a.oninput=()=>{
 
-b.innerHTML=a.value;
+
+slider.oninput =
+()=>{
+
+
+text.innerHTML =
+slider.value+
+suffix;
+
+
 
 };
+
 
 
 }
 
 
-});
+
+}
+
+
+
+bindSlider(
+exposure,
+expValue,
+" EV"
+);
+
+
+bindSlider(
+contrast,
+contrastValue
+);
+
+
+bindSlider(
+saturation,
+satValue,
+"%"
+);
+
+
+bindSlider(
+galaxy,
+galaxyValue,
+"%"
+);
