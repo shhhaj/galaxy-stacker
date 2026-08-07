@@ -78,16 +78,12 @@ canvas.height=img.height;
 
 // 第一张作为基础
 
+let count=1;
+
 ctx.drawImage(img,0,0);
+
 bar.style.width =
 (50 + count / photos.length * 40) + "%";
-
-// 混合模式
-
-ctx.globalAlpha=0.35;
-
-
-let count=1;
 
 
 photos.slice(1).forEach(file=>{
