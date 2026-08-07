@@ -3,7 +3,7 @@ const info=document.getElementById("info");
 const preview=document.getElementById("preview");
 const stackBtn=document.getElementById("stackBtn");
 const bar=document.getElementById("progressBar");
-const result=document.getElementById("result");
+const resultBox=document.getElementById("result");
 
 let photos=[];
 
@@ -33,74 +33,102 @@ preview.appendChild(img);
 
 
 
-stackBtn.onclick=async function(){
+function loadImage(file){
+
+return new Promise(resolve=>{
+
+let img=new Image();
+
+img.onload=()=>resolve(img);
+
+img.src=URL.createObjectURL(file);
+
+});
+
+}
+
+
+
+stackBtn.onclick=async()=>{
+
 
 if(photos.length<2){
 
 alert("至少选择2张照片");
+
 return;
 
 }
 
 
-info.innerHTML="正在银河平均堆栈...";
+stackBtn.disabled=true;
 
-bar.style.width="10%";
+info.innerHTML="正在平均堆栈...";
 
 
-
-let imgs=[];
+let images=[];
 
 
 for(let i=0;i<photos.length;i++){
 
-let img=new Image();
+let img=await loadImage(photos[i]);
 
-img.src=URL.createObjectURL(photos[i]);
+images.push(img);
 
-
-await new Promise(resolve=>{
-
-img.onload=resolve;
-
-});
-
-
-imgs.push(img);
-
-
-bar.style.width=(10+i/photos.length*50)+"%";
+bar.style.width=((i+1)/photos.length*50)+"%";
 
 }
 
 
 
+let max=2000;
+
+
+let w=images[0].width;
+let h=images[0].height;
+
+
+if(w>max){
+
+let scale=max/w;
+
+w*=scale;
+h*=scale;
+
+}
+
+
 
 let canvas=document.createElement("canvas");
 
+canvas.width=w;
+canvas.height=h;
+
+
 let ctx=canvas.getContext("2d");
-
-
-canvas.width=imgs[0].width;
-
-canvas.height=imgs[0].height;
-
 
 
 ctx.globalAlpha=1/photos.length;
 
 
-imgs.forEach(img=>{
+
+for(let i=0;i<images.length;i++){
+
 
 ctx.drawImage(
-img,
+images[i],
 0,
 0,
-canvas.width,
-canvas.height
+w,
+h
 );
 
-});
+
+bar.style.width=
+(50+i/photos.length*50)+"%";
+
+
+}
 
 
 
@@ -108,44 +136,44 @@ ctx.globalAlpha=1;
 
 
 
-let output=canvas.toDataURL(
+let result=canvas.toDataURL(
 "image/jpeg",
-0.9
+0.95
 );
 
 
 
-let image=document.createElement("img");
+let img=document.createElement("img");
 
-image.src=output;
+img.src=result;
 
-image.style.width="95%";
+img.style.width="95%";
 
 
-result.innerHTML="";
+resultBox.innerHTML="";
 
-result.appendChild(image);
+resultBox.appendChild(img);
 
 
 
 let link=document.createElement("a");
 
-link.href=output;
+link.href=result;
 
-link.download="galaxy_stack.jpg";
+link.download="Galaxy_Stack.jpg";
 
 link.innerHTML="下载银河堆栈照片";
 
-link.style.display="block";
+document.body.appendChild(link);
 
 
-result.appendChild(link);
 
-
+info.innerHTML="完成 ✨";
 
 bar.style.width="100%";
 
-info.innerHTML="银河堆栈完成 ✨";
+
+stackBtn.disabled=false;
 
 
 };
