@@ -262,3 +262,66 @@ button:active{
     }
 
 }
+/* ===========================
+V5.5 调节面板
+=========================== */
+
+.panel{
+
+margin-top:20px;
+
+padding:18px;
+
+background:#202431;
+
+border-radius:15px;
+
+box-shadow:0 5px 20px rgba(0,0,0,.35);
+
+}
+
+.panel h3{
+
+margin-bottom:15px;
+
+font-size:20px;
+
+color:#fff;
+
+}
+
+.panel label{
+
+display:block;
+
+margin-bottom:8px;
+
+color:#ddd;
+
+font-size:15px;
+
+}
+
+.panel input[type=range]{
+
+width:100%;
+
+margin-top:6px;
+
+accent-color:#4da3ff;
+
+}
+
+.panel span{
+
+display:block;
+
+margin-top:4px;
+
+margin-bottom:14px;
+
+font-size:14px;
+
+color:#87cefa;
+
+}
