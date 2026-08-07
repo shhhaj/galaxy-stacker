@@ -67,7 +67,87 @@ accept="image/*"
 
 
 <button id="stackBtn">
+<!-- ========= 调节面板 ========= -->
 
+<div class="panel">
+
+<h3>🎨 图像调节</h3>
+
+<label>
+
+曝光
+
+<input
+type="range"
+id="exposure"
+min="-2"
+max="2"
+step="0.1"
+value="0"
+>
+
+</label>
+
+<span id="expValue">0.0 EV</span>
+
+<br><br>
+
+<label>
+
+对比度
+
+<input
+type="range"
+id="contrast"
+min="-100"
+max="100"
+step="1"
+value="15"
+>
+
+</label>
+
+<span id="contrastValue">15</span>
+
+<br><br>
+
+<label>
+
+饱和度
+
+<input
+type="range"
+id="saturation"
+min="0"
+max="200"
+step="1"
+value="120"
+>
+
+</label>
+
+<span id="satValue">120%</span>
+
+<br><br>
+
+<label>
+
+银河增强
+
+<input
+type="range"
+id="galaxy"
+min="0"
+max="200"
+step="1"
+value="120"
+>
+
+</label>
+
+<span id="galaxyValue">120%</span>
+
+</div>
 ✨ 开始银河堆栈
 
 </button>
