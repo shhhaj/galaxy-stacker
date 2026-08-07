@@ -51,11 +51,7 @@ h1{
 }
 
 
-.upload input{
 
-    display:none;
-
-}
 
 
 
@@ -134,5 +130,18 @@ transition:0.3s;
 width:95%;
 margin-top:20px;
 border-radius:15px;
+
+} 
+#photoInput{
+
+    display:block;
+
+    width:90%;
+
+    margin:20px auto;
+
+    padding:10px;
+
+    font-size:16px;
 
 }
