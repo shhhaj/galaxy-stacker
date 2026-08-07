@@ -152,7 +152,7 @@ stackBtn.disabled=false;
 
 stackBtn.innerHTML="✨ 一键银河堆栈";
 
-bar.style.width="100%";1
+bar.style.width="100%";
 
 }
 
