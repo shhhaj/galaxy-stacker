@@ -18,13 +18,13 @@ input.addEventListener("change", function(){
     info.innerHTML =
     "已选择 " + photos.length + " 张照片";
 
-    preview.innerHTML = "";
+    preview.innerHTML="";
 
     photos.forEach(file=>{
 
         let img=document.createElement("img");
 
-        img.src = URL.createObjectURL(file);
+        img.src=URL.createObjectURL(file);
 
         img.style.width="120px";
         img.style.margin="5px";
@@ -38,235 +38,289 @@ input.addEventListener("change", function(){
 
 
 
-// 银河堆栈
+// 平均堆栈
 
-stackBtn.onclick = async function(){
+stackBtn.onclick=function(){
 
-    if(photos.length < 2){
+    if(photos.length<2){
 
         alert("请至少选择2张照片");
 
         return;
+
     }
 
 
     stackBtn.disabled=true;
 
-    stackBtn.innerHTML="处理中...";
+    stackBtn.innerHTML="平均堆栈处理中...";
 
 
-    info.innerHTML="正在银河堆栈处理中...";
-
+    info.innerHTML="正在计算像素平均...";
 
     resultBox.innerHTML="";
 
-
-    bar.style.width="10%";
-
-
-
-    try{
-
-
-        let canvas=document.createElement("canvas");
-
-        let ctx=canvas.getContext("2d");
+    bar.style.width="5%";
 
 
 
-        let base=new Image();
+    let canvas=document.createElement("canvas");
+
+    let ctx=canvas.getContext("2d");
 
 
 
-        base.onload=function(){
-
-
-            canvas.width=base.width;
-
-            canvas.height=base.height;
+    let first=new Image();
 
 
 
-            ctx.drawImage(base,0,0);
+    first.onload=function(){
 
 
-            let count=1;
+        canvas.width=first.width;
+
+        canvas.height=first.height;
 
 
 
-            let loadNext=function(index){
+        let width=canvas.width;
+
+        let height=canvas.height;
 
 
-                if(index >= photos.length){
+
+        let pixelCount=width*height;
 
 
-                    finish();
+
+        let rSum=new Float32Array(pixelCount);
+
+        let gSum=new Float32Array(pixelCount);
+
+        let bSum=new Float32Array(pixelCount);
 
 
-                    return;
+
+        processImage(0);
+
+
+
+        function processImage(index){
+
+
+            if(index>=photos.length){
+
+                createResult();
+
+                return;
+
+            }
+
+
+            let img=new Image();
+
+
+            img.onload=function(){
+
+
+                ctx.clearRect(
+                    0,
+                    0,
+                    width,
+                    height
+                );
+
+
+                ctx.drawImage(
+                    img,
+                    0,
+                    0,
+                    width,
+                    height
+                );
+
+
+                let data =
+                ctx.getImageData(
+                    0,
+                    0,
+                    width,
+                    height
+                ).data;
+
+
+
+                for(
+                    let i=0, p=0;
+                    i<data.length;
+                    i+=4,p++
+                ){
+
+                    rSum[p]+=data[i];
+
+                    gSum[p]+=data[i+1];
+
+                    bSum[p]+=data[i+2];
 
                 }
 
 
 
-                let img=new Image();
+                bar.style.width =
+                ((index+1)/photos.length*80+10)
+                +"%";
 
 
-
-                img.onload=function(){
-
-
-                    ctx.globalAlpha=0.35;
-
-
-                    ctx.drawImage(
-                        img,
-                        0,
-                        0,
-                        canvas.width,
-                        canvas.height
-                    );
+                info.innerHTML=
+                "正在处理第 "
+                +(index+1)
+                +" / "
+                +photos.length
+                +" 张";
 
 
-                    count++;
-
-
-                    bar.style.width =
-                    (10 + count/photos.length*80)+"%";
-
-
-                    loadNext(index+1);
-
-
-                };
-
-
-                img.src=
-                URL.createObjectURL(
-                    photos[index]
-                );
+                processImage(index+1);
 
 
             };
 
 
-
-            loadNext(1);
-
-
-
-            function finish(){
+            img.src=
+            URL.createObjectURL(
+                photos[index]
+            );
 
 
-                ctx.globalAlpha=1;
+        };        function createResult(){
 
 
-
-                let imageData =
-                canvas.toDataURL(
-                    "image/jpeg",
-                    0.95
-                );
-
+            let output =
+            ctx.createImageData(
+                width,
+                height
+            );
 
 
-                let imgPreview=
-                document.createElement("img");
+            for(
+                let i=0,p=0;
+                i<output.data.length;
+                i+=4,p++
+            ){
+
+                output.data[i] =
+                rSum[p] / photos.length;
 
 
-                imgPreview.src=imageData;
-
-                imgPreview.style.width="95%";
-
-                imgPreview.style.borderRadius="15px";
+                output.data[i+1] =
+                gSum[p] / photos.length;
 
 
-                resultBox.appendChild(
-                    imgPreview
-                );
+                output.data[i+2] =
+                bSum[p] / photos.length;
 
 
-
-                let link=
-                document.createElement("a");
-
-
-                link.href=imageData;
-
-                link.download=
-                "galaxy_stack.jpg";
-
-
-                link.innerHTML=
-                "下载银河堆栈结果";
-
-
-                link.style.display="block";
-
-                link.style.margin="20px auto";
-
-                link.style.padding="15px";
-
-                link.style.background="#2980ff";
-
-                link.style.color="white";
-
-                link.style.borderRadius="12px";
-
-                link.style.textDecoration="none";
-
-
-
-                resultBox.appendChild(link);
-
-
-
-                bar.style.width="100%";
-
-
-                info.innerHTML=
-                "银河堆栈完成 ✨";
-
-
-
-                stackBtn.disabled=false;
-
-                stackBtn.innerHTML=
-                "✨ 一键银河堆栈";
-
+                output.data[i+3] = 255;
 
             }
 
 
-        };
+
+            ctx.putImageData(
+                output,
+                0,
+                0
+            );
 
 
 
-        base.src=
+            let imageData =
+            canvas.toDataURL(
+                "image/jpeg",
+                0.95
+            );
+
+
+
+            let previewImg =
+            document.createElement("img");
+
+
+            previewImg.src=imageData;
+
+            previewImg.style.width="95%";
+
+            previewImg.style.borderRadius="15px";
+
+
+            resultBox.appendChild(
+                previewImg
+            );
+
+
+
+            let link =
+            document.createElement("a");
+
+
+            link.href=imageData;
+
+
+            link.download=
+            "galaxy_average_stack.jpg";
+
+
+            link.innerHTML=
+            "下载平均堆栈结果";
+
+
+            link.style.display="block";
+
+            link.style.margin="20px auto";
+
+            link.style.padding="15px";
+
+            link.style.background="#2980ff";
+
+            link.style.color="white";
+
+            link.style.borderRadius="12px";
+
+            link.style.textDecoration="none";
+
+
+            resultBox.appendChild(
+                link
+            );
+
+
+
+            bar.style.width="100%";
+
+
+            info.innerHTML=
+            "平均堆栈完成 ✨";
+
+
+
+            stackBtn.disabled=false;
+
+
+            stackBtn.innerHTML=
+            "✨ 一键银河堆栈";
+
+
+        }
+
+
+
+        first.src =
         URL.createObjectURL(
             photos[0]
         );
 
 
-    }
+    };
 
-    catch(error){
-
-
-        console.log(error);
-
-
-        info.innerHTML=
-        "处理失败，请重新尝试";
-
-
-        stackBtn.disabled=false;
-
-        stackBtn.innerHTML=
-        "✨ 一键银河堆栈";
-
-
-    }
 
 
 };
