@@ -10,18 +10,22 @@ const result = document.getElementById("result");
 let photos = [];
 
 
+
 // ==========================
 // 导入照片
 // ==========================
 
-input.addEventListener("change", function(e){
+input.addEventListener("change",function(e){
 
 
-    photos = Array.from(e.target.files);
+    photos =
+    Array.from(e.target.files);
 
 
     count.innerHTML =
-    "已选择：" + photos.length + " 张照片";
+    "已选择：" +
+    photos.length +
+    " 张照片";
 
 
     preview.innerHTML="";
@@ -49,14 +53,9 @@ input.addEventListener("change", function(e){
     });
 
 
-    console.log(
-        "导入照片:",
-        photos
-    );
 
-
-    info.innerHTML =
-    "照片已加载";
+    info.innerHTML=
+    "照片加载完成";
 
 
 });
@@ -64,33 +63,220 @@ input.addEventListener("change", function(e){
 
 
 
+
+
 // ==========================
-// 读取图片
+// 图片读取
 // ==========================
 
 function readImage(file){
 
-    return new Promise(resolve=>{
+
+return new Promise(resolve=>{
 
 
-        let img =
-        new Image();
+let img=new Image();
 
 
-        img.onload=function(){
+img.onload=function(){
 
-            resolve(img);
+resolve(img);
 
-        };
-
-
-        img.src =
-        URL.createObjectURL(file);
+};
 
 
-    });
+img.src=
+URL.createObjectURL(file);
+
+
+
+});
+
 
 }
+
+
+
+
+
+
+// ==========================
+// 星点检测
+// ==========================
+
+function detectStars(imageData){
+
+
+let stars=[];
+
+
+let d=imageData.data;
+
+
+let w=imageData.width;
+
+
+let h=imageData.height;
+
+
+
+for(
+let y=5;
+y<h-5;
+y+=4
+){
+
+
+for(
+let x=5;
+x<w-5;
+x+=4
+){
+
+
+let i=
+(y*w+x)*4;
+
+
+
+let light=
+(
+d[i]+
+d[i+1]+
+d[i+2]
+)/3;
+
+
+
+if(light>220){
+
+
+stars.push({
+
+x:x,
+
+y:y,
+
+power:light
+
+
+});
+
+
+}
+
+
+
+}
+
+
+
+}
+
+
+
+stars.sort(
+(a,b)=>
+b.power-a.power
+);
+
+
+
+return stars.slice(0,80);
+
+
+
+}
+
+
+
+
+
+
+
+// ==========================
+// 星点偏移计算
+// ==========================
+
+function calculateOffset(
+base,
+target
+){
+
+
+
+if(
+base.length===0 ||
+target.length===0
+){
+
+
+return {
+
+x:0,
+
+y:0
+
+};
+
+
+}
+
+
+
+
+let dx=0;
+
+let dy=0;
+
+
+
+let count=
+Math.min(
+base.length,
+target.length
+);
+
+
+
+
+for(
+let i=0;
+i<count;
+i++
+){
+
+
+dx +=
+target[i].x -
+base[i].x;
+
+
+dy +=
+target[i].y -
+base[i].y;
+
+
+
+}
+
+
+
+
+return {
+
+x:dx/count,
+
+y:dy/count
+
+};
+
+
+
+}
+
+
+
 
 
 
@@ -102,296 +288,50 @@ function readImage(file){
 function galaxyEnhance(data){
 
 
-    let d=data.data;
 
-
-    for(
-        let i=0;
-        i<d.length;
-        i+=4
-    ){
-
-
-        let light =
-        (
-        d[i]+
-        d[i+1]+
-        d[i+2]
-        )/3;
+let d=data.data;
 
 
 
-        if(
-        light>50 &&
-        light<180
-        ){
-
-            d[i]*=1.12;
-            d[i+1]*=1.08;
-            d[i+2]*=1.18;
-
-        }
+for(
+let i=0;
+i<d.length;
+i+=4
+){
 
 
-
-        if(light>200){
-
-            d[i]*=1.08;
-            d[i+1]*=1.08;
-            d[i+2]*=1.12;
-
-        }
+let light=
+(
+d[i]+
+d[i+1]+
+d[i+2]
+)/3;
 
 
 
-        d[i]=Math.min(255,d[i]);
-        d[i+1]=Math.min(255,d[i+1]);
-        d[i+2]=Math.min(255,d[i+2]);
+if(
+light>50 &&
+light<180
+){
 
 
-    }
+d[i]*=1.12;
 
+d[i+1]*=1.08;
 
-    return data;
+d[i+2]*=1.18;
+
 
 }
 
 
 
 
-// ==========================
-// 银河堆栈
-// ==========================
+if(light>200){
 
 
-btn.onclick = async function(){
+d[i]*=1.08;
 
+d[i+1]*=1.08;
 
-    if(photos.length<2){
-
-
-        alert(
-        "请至少选择2张照片"
-        );
-
-
-        return;
-
-    }
-
-
-
-    btn.disabled=true;
-
-
-    info.innerHTML=
-    "正在处理...";
-
-
-
-    let images=[];
-
-
-
-    for(
-    let i=0;
-    i<photos.length;
-    i++
-    ){
-
-
-        let img =
-        await readImage(
-            photos[i]
-        );
-
-
-        images.push(img);
-
-
-    }
-
-
-
-    let width =
-    images[0].width;
-
-
-    let height =
-    images[0].height;
-
-
-
-    let canvas =
-    document.createElement("canvas");
-
-
-    canvas.width=width;
-
-    canvas.height=height;
-
-
-
-    let ctx =
-    canvas.getContext("2d");
-
-
-
-    let total =
-    new Float32Array(
-        width*height*4
-    );
-
-
-
-
-    for(
-    let i=0;
-    i<images.length;
-    i++
-    ){
-
-
-        ctx.clearRect(
-        0,
-        0,
-        width,
-        height
-        );
-
-
-        ctx.drawImage(
-        images[i],
-        0,
-        0
-        );
-
-
-        let data =
-        ctx.getImageData(
-        0,
-        0,
-        width,
-        height
-        ).data;
-
-
-
-        for(
-        let p=0;
-        p<data.length;
-        p++
-        ){
-
-            total[p]+=data[p];
-
-        }
-
-
-
-        bar.style.width =
-        (
-        (i+1) /
-        images.length *
-        80
-        )
-        +"%";
-
-
-
-    }
-
-
-
-
-    let output =
-    ctx.createImageData(
-        width,
-        height
-    );
-
-
-
-    for(
-    let i=0;
-    i<total.length;
-    i++
-    ){
-
-        output.data[i]=
-        total[i]/
-        images.length;
-
-
-    }
-
-
-
-    output =
-    galaxyEnhance(
-        output
-    );
-
-
-
-    ctx.putImageData(
-        output,
-        0,
-        0
-    );
-
-
-
-    let url =
-    canvas.toDataURL(
-        "image/png"
-    );
-
-
-
-    result.innerHTML="";
-
-
-
-    let img =
-    document.createElement("img");
-
-
-    img.src=url;
-
-    img.style.width="95%";
-
-
-    result.appendChild(img);
-
-
-
-    let link =
-    document.createElement("a");
-
-
-    link.href=url;
-
-    link.download=
-    "Galaxy_Stack.png";
-
-
-    link.innerHTML=
-    "下载银河照片";
-
-
-    result.appendChild(link);
-
-
-
-    bar.style.width="100%";
-
-
-    info.innerHTML=
-    "银河堆栈完成 ✨";
-
-
-    btn.disabled=false;
-
-
-};
+d[i
