@@ -1,41 +1,112 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
+
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Galaxy Stacker Pro V1.1</title>
+
+<meta name="viewport"
+content="width=device-width,initial-scale=1.0">
+
+
+<title>
+银河堆栈大师 V4.0
+</title>
+
+
 <link rel="stylesheet" href="style.css">
+
 </head>
+
 
 <body>
 
-<div class="container">
 
-<h1>🌌 Galaxy Stacker Pro</h1>
+<div class="box">
 
-<input
+
+<h1>
+🌌 银河堆栈大师 V4.0
+</h1>
+
+
+
+<label class="upload">
+
+选择银河照片
+
+<input 
 id="photoInput"
 type="file"
-accept="image/*"
-multiple>
+multiple
+accept="
+image/*,
+.dng,
+.raw,
+.nef,
+.cr2,
+.arw
+">
 
-<p id="info">请选择银河照片</p>
+</label>
+
+
+
+<div id="count">
+
+未选择照片
+
+</div>
+
+
+
+<div id="preview">
+
+</div>
+
+
 
 <div id="progressBox">
-<div id="progressBar"></div>
+
+<div id="progressBar">
+
 </div>
 
-<div id="preview"></div>
+</div>
+
+
 
 <button id="stackBtn">
+
 ✨ 开始银河堆栈
+
 </button>
 
-<div id="result"></div>
+
+
+<p id="info">
+
+等待照片...
+
+</p>
+
+
+
+<div id="result">
 
 </div>
+
+
+
+</div>
+
+
+
+<script src="lib/raw.js"></script>
 
 <script src="app.js"></script>
 
+
 </body>
+
 </html>
