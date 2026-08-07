@@ -121,7 +121,14 @@ link.innerHTML="下载银河堆栈结果";
 
 
 document.body.appendChild(link);
-
+link.style.display="block";
+link.style.margin="20px auto";
+link.style.padding="15px";
+link.style.background="#2980ff";
+link.style.color="white";
+link.style.borderRadius="12px";
+link.style.textAlign="center";
+link.style.textDecoration="none";
 
 info.innerHTML="银河堆栈完成 ✨";
 
