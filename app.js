@@ -1,3 +1,26 @@
+const exposure =
+document.getElementById("exposure");
+
+const contrast =
+document.getElementById("contrast");
+
+const saturation =
+document.getElementById("saturation");
+
+const galaxy =
+document.getElementById("galaxy");
+
+const expValue =
+document.getElementById("expValue");
+
+const contrastValue =
+document.getElementById("contrastValue");
+
+const satValue =
+document.getElementById("satValue");
+
+const galaxyValue =
+document.getElementById("galaxyValue");
 // =====================================
 // Galaxy Stacker V4.7
 // RAW Ready + Star Align + Stack
