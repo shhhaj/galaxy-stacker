@@ -8,9 +8,8 @@
 <meta name="viewport"
 content="width=device-width,initial-scale=1.0">
 
-
 <title>
-银河堆栈大师 V4.0
+银河堆栈大师 V4
 </title>
 
 
@@ -26,7 +25,7 @@ content="width=device-width,initial-scale=1.0">
 
 
 <h1>
-🌌 银河堆栈大师 V4.0
+🌌 银河堆栈大师 V4
 </h1>
 
 
@@ -35,17 +34,20 @@ content="width=device-width,initial-scale=1.0">
 
 选择银河照片
 
-<input 
+<input
 id="photoInput"
 type="file"
 multiple
 accept="
-image/*,
 .dng,
-.raw,
-.nef,
 .cr2,
-.arw
+.cr3,
+.nef,
+.arw,
+.raf,
+.jpg,
+.jpeg,
+.png
 ">
 
 </label>
@@ -53,15 +55,12 @@ image/*,
 
 
 <div id="count">
-
-未选择照片
-
+已选择：0 张照片
 </div>
 
 
 
 <div id="preview">
-
 </div>
 
 
@@ -102,12 +101,10 @@ image/*,
 
 
 
-<script src="lib/raw.js"></script>
+<script src="lib/raw_decoder.js"></script>
 
 <script src="app.js"></script>
-<script src="lib/libraw.js"></script>
 
-<script src="lib/raw_decoder.js"></script>
 
 </body>
 
