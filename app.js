@@ -51,6 +51,12 @@ if(photos.length<2){
 
 alert("请至少选择2张照片");
 
+stackBtn.disabled=false;
+
+stackBtn.innerHTML="✨ 一键银河堆栈";
+
+return;
+
 return;
 
 }
