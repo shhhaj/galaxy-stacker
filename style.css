@@ -1,222 +1,378 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
+*{
+box-sizing:border-box;
+}
 
-<head>
 
-<meta charset="UTF-8">
 
-<meta name="viewport"
-content="width=device-width,initial-scale=1.0">
+body{
 
-<title>
-银河堆栈大师 V5.0
-</title>
+margin:0;
 
+min-height:100vh;
 
-<link rel="stylesheet" href="style.css">
+background:
+radial-gradient(
+circle at top,
+#16345c,
+#020812
+);
 
-</head>
+color:white;
 
+font-family:
+"Microsoft YaHei",
+Arial,
+sans-serif;
 
-<body>
+}
 
 
-<div class="box">
 
 
-<h1>
-🌌 银河堆栈大师 V5.0
-</h1>
+.box{
 
+width:92%;
 
+max-width:520px;
 
-<label class="upload">
+margin:40px auto;
 
-选择银河照片
+text-align:center;
 
-<input
-id="photoInput"
-type="file"
-multiple
-accept="image/*"
->
+}
 
-</label>
 
 
 
-<div id="count">
-已选择：0 张照片
-</div>
+h1{
 
+font-size:34px;
 
+margin-bottom:35px;
 
-<div id="preview">
-</div>
+letter-spacing:2px;
 
+}
 
 
 
-<div id="progressBox">
 
-<div id="progressBar">
+.upload{
 
-</div>
+display:inline-block;
 
-</div>
+background:#296cff;
 
+padding:15px 30px;
 
+border-radius:15px;
 
+cursor:pointer;
 
+font-size:18px;
 
-<!-- ========= 调节面板 ========= -->
+box-shadow:
+0 0 20px
+rgba(41,108,255,.5);
 
-<div class="panel">
+}
 
 
-<h3>
-🎨 图像调节
-</h3>
 
 
+.upload input{
 
-<label>
+display:none;
 
-曝光
+}
 
-<input
-type="range"
-id="exposure"
-min="-2"
-max="2"
-step="0.1"
-value="0"
->
 
-</label>
 
-<span id="expValue">
-0.0 EV
-</span>
 
 
+#count{
 
+margin:25px 0;
 
+font-size:20px;
 
-<label>
+color:#ddd;
 
-对比度
+}
 
-<input
-type="range"
-id="contrast"
-min="-100"
-max="100"
-step="1"
-value="15"
->
 
-</label>
 
-<span id="contrastValue">
-15
-</span>
 
+#preview{
 
+display:flex;
 
+flex-wrap:wrap;
 
+justify-content:center;
 
+}
 
-<label>
 
-饱和度
 
-<input
-type="range"
-id="saturation"
-min="0"
-max="200"
-step="1"
-value="120"
->
 
-</label>
 
-<span id="satValue">
-120%
-</span>
+#preview img{
 
+object-fit:cover;
 
+}
 
 
 
 
+#progressBox{
 
-<label>
+width:100%;
 
-银河增强
+height:18px;
 
-<input
-type="range"
-id="galaxy"
-min="0"
-max="200"
-step="1"
-value="120"
->
+margin:25px auto;
 
-</label>
+background:#222;
 
-<span id="galaxyValue">
-120%
-</span>
+border-radius:20px;
 
+overflow:hidden;
 
+}
 
-</div>
 
 
 
+#progressBar{
 
+width:0%;
 
-<button id="stackBtn">
+height:100%;
 
-✨ 开始银河堆栈
+background:
+linear-gradient(
+90deg,
+#00e5ff,
+#2388ff
+);
 
-</button>
+transition:.3s;
 
+}
 
 
 
 
-<p id="info">
 
-等待照片...
+/* ===== 调节面板 ===== */
 
-</p>
 
+.panel{
 
+margin-top:25px;
 
+padding:20px;
 
-<div id="result">
+background:#202431;
 
-</div>
+border-radius:18px;
 
+box-shadow:
+0 5px 25px
+rgba(0,0,0,.35);
 
+}
 
 
 
-</div>
 
 
+.panel h3{
 
+margin:0 0 20px;
 
-<script src="lib/raw_decoder.js"></script>
+font-size:20px;
 
-<script src="app.js"></script>
+}
 
 
 
-</body>
 
-</html>
+
+.panel label{
+
+display:block;
+
+text-align:left;
+
+color:#ddd;
+
+font-size:16px;
+
+margin-top:15px;
+
+}
+
+
+
+
+
+.panel input[type=range]{
+
+width:100%;
+
+height:8px;
+
+margin-top:10px;
+
+accent-color:#4da3ff;
+
+}
+
+
+
+
+
+.panel span{
+
+display:block;
+
+margin-top:6px;
+
+margin-bottom:10px;
+
+color:#87cefa;
+
+font-size:14px;
+
+}
+
+
+
+
+/* ===== 开始按钮 ===== */
+
+
+#stackBtn{
+
+width:100%;
+
+height:65px;
+
+margin-top:30px;
+
+border:none;
+
+border-radius:18px;
+
+background:
+
+linear-gradient(
+135deg,
+#2388ff,
+#0055dd
+);
+
+color:white;
+
+font-size:22px;
+
+font-weight:bold;
+
+cursor:pointer;
+
+box-shadow:
+0 0 20px
+rgba(35,136,255,.5);
+
+}
+
+
+
+#stackBtn:active{
+
+transform:scale(.97);
+
+}
+
+
+
+
+
+#info{
+
+margin-top:25px;
+
+color:#ccc;
+
+font-size:17px;
+
+}
+
+
+
+
+#result img{
+
+width:95%;
+
+margin-top:30px;
+
+border-radius:18px;
+
+box-shadow:
+
+0 0 30px
+rgba(0,0,0,.6);
+
+}
+
+
+
+
+
+#result a{
+
+display:block;
+
+margin:25px auto;
+
+padding:15px;
+
+width:90%;
+
+background:#16a34a;
+
+color:white;
+
+text-decoration:none;
+
+border-radius:15px;
+
+font-size:18px;
+
+}
+
+
+
+
+@media(max-width:600px){
+
+
+h1{
+
+font-size:28px;
+
+}
+
+
+#stackBtn{
+
+height:60px;
+
+}
+
+
+}
