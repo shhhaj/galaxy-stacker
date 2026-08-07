@@ -40,7 +40,11 @@ preview.appendChild(img);
 
 // 银河堆栈
 
-stackBtn.onclick=function(){
+stackBtn.onclick=async function(){
+
+stackBtn.disabled=true;
+
+stackBtn.innerHTML="处理中...";
 
 
 if(photos.length<2){
