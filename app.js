@@ -1,314 +1,397 @@
-const input=document.getElementById("photoInput");
-const count=document.getElementById("count");
-const preview=document.getElementById("preview");
-const btn=document.getElementById("stackBtn");
-const info=document.getElementById("info");
-const bar=document.getElementById("progressBar");
-const result=document.getElementById("result");
-
-let photos=[];
+const input = document.getElementById("photoInput");
+const count = document.getElementById("count");
+const preview = document.getElementById("preview");
+const btn = document.getElementById("stackBtn");
+const info = document.getElementById("info");
+const bar = document.getElementById("progressBar");
+const result = document.getElementById("result");
 
 
-// 选择照片
-
-input.onchange=function(){
-
-photos=[...this.files];
-
-count.innerHTML=
-"已选择："+photos.length+" 张照片";
+let photos = [];
 
 
-preview.innerHTML="";
+// ==========================
+// 导入照片
+// ==========================
+
+input.addEventListener("change", function(e){
 
 
-photos.forEach(file=>{
+    photos = Array.from(e.target.files);
 
-let img=document.createElement("img");
 
-img.src=
-URL.createObjectURL(file);
+    count.innerHTML =
+    "已选择：" + photos.length + " 张照片";
 
-img.style.width="120px";
-img.style.margin="5px";
-img.style.borderRadius="10px";
 
-preview.appendChild(img);
+    preview.innerHTML="";
+
+
+    photos.forEach(file=>{
+
+
+        let img =
+        document.createElement("img");
+
+
+        img.src =
+        URL.createObjectURL(file);
+
+
+        img.style.width="120px";
+        img.style.margin="5px";
+        img.style.borderRadius="10px";
+
+
+        preview.appendChild(img);
+
+
+    });
+
+
+    console.log(
+        "导入照片:",
+        photos
+    );
+
+
+    info.innerHTML =
+    "照片已加载";
+
 
 });
 
 
-};
 
 
-
-
-// 普通图片读取
+// ==========================
+// 读取图片
+// ==========================
 
 function readImage(file){
 
-return new Promise(resolve=>{
+    return new Promise(resolve=>{
 
-let img=new Image();
 
-img.onload=()=>resolve(img);
+        let img =
+        new Image();
 
-img.src=
-URL.createObjectURL(file);
 
-});
+        img.onload=function(){
+
+            resolve(img);
+
+        };
+
+
+        img.src =
+        URL.createObjectURL(file);
+
+
+    });
 
 }
 
 
 
 
+// ==========================
 // 银河增强
+// ==========================
 
 function galaxyEnhance(data){
 
-let d=data.data;
+
+    let d=data.data;
 
 
-for(let i=0;i<d.length;i+=4){
+    for(
+        let i=0;
+        i<d.length;
+        i+=4
+    ){
 
 
-let r=d[i];
-let g=d[i+1];
-let b=d[i+2];
+        let light =
+        (
+        d[i]+
+        d[i+1]+
+        d[i+2]
+        )/3;
 
 
-let light=
-(r+g+b)/3;
+
+        if(
+        light>50 &&
+        light<180
+        ){
+
+            d[i]*=1.12;
+            d[i+1]*=1.08;
+            d[i+2]*=1.18;
+
+        }
 
 
-// 暗部降噪
 
-if(light<40){
+        if(light>200){
 
-r*=0.9;
-g*=0.9;
-b*=0.95;
+            d[i]*=1.08;
+            d[i+1]*=1.08;
+            d[i+2]*=1.12;
 
-}
-
-
-// 银河增强
-
-if(
-light>50 &&
-light<180
-){
-
-r*=1.15;
-g*=1.08;
-b*=1.2;
-
-}
+        }
 
 
-// 星点增强
 
-if(light>210){
-
-r*=1.1;
-g*=1.1;
-b*=1.15;
-
-}
+        d[i]=Math.min(255,d[i]);
+        d[i+1]=Math.min(255,d[i+1]);
+        d[i+2]=Math.min(255,d[i+2]);
 
 
-d[i]=Math.min(255,r);
-d[i+1]=Math.min(255,g);
-d[i+2]=Math.min(255,b);
+    }
 
 
-}
-
-
-return data;
+    return data;
 
 }
 
 
 
 
-// 降噪
+// ==========================
+// 银河堆栈
+// ==========================
 
-function noiseReduce(data){
 
-let d=data.data;
+btn.onclick = async function(){
 
 
-for(let i=0;i<d.length;i+=4){
+    if(photos.length<2){
 
-let l=
-(d[i]+d[i+1]+d[i+2])/3;
 
+        alert(
+        "请至少选择2张照片"
+        );
 
-if(l<35){
 
-d[i]*=.9;
-d[i+1]*=.9;
-d[i+2]*=.92;
+        return;
 
-}
+    }
 
-}
 
 
-return data;
+    btn.disabled=true;
 
-}
 
+    info.innerHTML=
+    "正在处理...";
 
 
 
+    let images=[];
 
 
-// 开始堆栈
 
+    for(
+    let i=0;
+    i<photos.length;
+    i++
+    ){
 
-btn.onclick=async function(){
 
+        let img =
+        await readImage(
+            photos[i]
+        );
 
-if(photos.length<2){
 
-alert("至少选择2张照片");
+        images.push(img);
 
-return;
 
-}
+    }
 
 
 
-btn.disabled=true;
+    let width =
+    images[0].width;
 
 
-info.innerHTML=
-"正在读取照片...";
+    let height =
+    images[0].height;
 
 
-let images=[];
 
+    let canvas =
+    document.createElement("canvas");
 
-for(let i=0;i<photos.length;i++){
 
+    canvas.width=width;
 
-let img;
+    canvas.height=height;
 
 
-if(
-typeof loadRAW==="function"
-){
 
-img=
-await loadRAW(photos[i]);
+    let ctx =
+    canvas.getContext("2d");
 
-}
-else{
 
-img=
-await readImage(photos[i]);
 
-}
+    let total =
+    new Float32Array(
+        width*height*4
+    );
 
 
 
-images.push(img);
 
+    for(
+    let i=0;
+    i<images.length;
+    i++
+    ){
 
-}
 
+        ctx.clearRect(
+        0,
+        0,
+        width,
+        height
+        );
 
 
-let w=images[0].width;
+        ctx.drawImage(
+        images[i],
+        0,
+        0
+        );
 
-let h=images[0].height;
 
+        let data =
+        ctx.getImageData(
+        0,
+        0,
+        width,
+        height
+        ).data;
 
 
-let canvas=
-document.createElement("canvas");
 
+        for(
+        let p=0;
+        p<data.length;
+        p++
+        ){
 
-canvas.width=w;
-canvas.height=h;
+            total[p]+=data[p];
 
+        }
 
 
-let ctx=
-canvas.getContext("2d");
 
+        bar.style.width =
+        (
+        (i+1) /
+        images.length *
+        80
+        )
+        +"%";
 
 
-let total=
-new Float64Array(
-w*h*4
-);
 
+    }
 
 
 
-// 平均堆栈
 
+    let output =
+    ctx.createImageData(
+        width,
+        height
+    );
 
-for(let i=0;i<images.length;i++){
 
 
-ctx.clearRect(
-0,
-0,
-w,
-h
-);
+    for(
+    let i=0;
+    i<total.length;
+    i++
+    ){
 
+        output.data[i]=
+        total[i]/
+        images.length;
 
 
-ctx.drawImage(
-images[i],
-0,
-0
-);
+    }
 
 
 
-let pixels=
-ctx.getImageData(
-0,
-0,
-w,
-h
-).data;
+    output =
+    galaxyEnhance(
+        output
+    );
 
 
 
-for(
-let p=0;
-p<pixels.length;
-p++
-){
+    ctx.putImageData(
+        output,
+        0,
+        0
+    );
 
-total[p]+=pixels[p];
 
-}
 
+    let url =
+    canvas.toDataURL(
+        "image/png"
+    );
 
 
-bar.style.width=
-(
-20+
-(i+1)/images.length*60
-)
-+"%";
 
+    result.innerHTML="";
 
 
-info.innerHTML=
-"正在堆栈 "+
-(i+1)+
-"/"+
-images.length;
 
+    let img =
+    document.createElement("img");
 
-}
+
+    img.src=url;
+
+    img.style.width="95%";
+
+
+    result.appendChild(img);
+
+
+
+    let link =
+    document.createElement("a");
+
+
+    link.href=url;
+
+    link.download=
+    "Galaxy_Stack.png";
+
+
+    link.innerHTML=
+    "下载银河照片";
+
+
+    result.appendChild(link);
+
+
+
+    bar.style.width="100%";
+
+
+    info.innerHTML=
+    "银河堆栈完成 ✨";
+
+
+    btn.disabled=false;
+
+
+};
