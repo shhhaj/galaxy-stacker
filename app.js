@@ -57,8 +57,6 @@ stackBtn.innerHTML="✨ 一键银河堆栈";
 
 return;
 
-return;
-
 }
 
 
