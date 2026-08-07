@@ -125,7 +125,13 @@ link.download="galaxy_stack.jpg";
 
 
 link.innerHTML="下载银河堆栈结果";
+let result=document.getElementById("result");
 
+
+let imgPreview=document.createElement("img");
+
+
+imgPreview.src=result;
 
 document.body.appendChild(link);
 link.style.display="block";
