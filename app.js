@@ -111,27 +111,31 @@ if(count===photos.length){
 ctx.globalAlpha=1;
 
 
-let result=
+let imageData =
 canvas.toDataURL("image/jpeg",0.95);
-
 
 
 let link=document.createElement("a");
 
-
-link.href=result;
+link.href=imageData;
 
 link.download="galaxy_stack.jpg";
 
-
 link.innerHTML="下载银河堆栈结果";
-let result=document.getElementById("result");
+
+
+let resultBox=document.getElementById("result");
 
 
 let imgPreview=document.createElement("img");
 
 
-imgPreview.src=result;
+imgPreview.src=imageData;
+
+imgPreview.style.width="95%";
+
+
+resultBox.appendChild(imgPreview);
 
 document.body.appendChild(link);
 link.style.display="block";
