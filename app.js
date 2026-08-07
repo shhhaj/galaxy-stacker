@@ -8,6 +8,76 @@ const resultBox=document.getElementById("result");
 
 let photos=[];
 // ==========================
+// V1.4 银河增强算法
+// ==========================
+
+
+function galaxyEnhance(imageData){
+
+let data=imageData.data;
+
+
+for(let i=0;i<data.length;i+=4){
+
+
+let r=data[i];
+let g=data[i+1];
+let b=data[i+2];
+
+
+// 计算亮度
+
+let brightness=
+(r+g+b)/3;
+
+
+// 暗部压制
+if(brightness<35){
+
+r*=0.85;
+g*=0.85;
+b*=0.9;
+
+}
+
+
+// 银河区域增强
+
+if(brightness>50 &&
+brightness<180){
+
+r*=1.12;
+g*=1.08;
+b*=1.18;
+
+}
+
+
+// 星点增强
+
+if(brightness>200){
+
+r*=1.15;
+g*=1.15;
+b*=1.2;
+
+}
+
+
+// 限制范围
+
+data[i]=Math.min(255,r);
+data[i+1]=Math.min(255,g);
+data[i+2]=Math.min(255,b);
+
+
+}
+
+
+return imageData;
+
+}
+// ==========================
 // V1.3 星点检测核心
 // ==========================
 
