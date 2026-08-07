@@ -3,36 +3,36 @@ const info = document.getElementById("info");
 const preview = document.getElementById("preview");
 const stackBtn = document.getElementById("stackBtn");
 
+const bar = document.getElementById("progressBar");
+const resultBox = document.getElementById("result");
 
 let photos = [];
 
 
+// 选择照片
+
 input.addEventListener("change", function(){
 
-photos = Array.from(this.files);
+    photos = Array.from(this.files);
 
+    info.innerHTML =
+    "已选择 " + photos.length + " 张照片";
 
-info.innerHTML =
-"已选择 " + photos.length + " 张照片";
+    preview.innerHTML = "";
 
+    photos.forEach(file=>{
 
-preview.innerHTML="";
+        let img=document.createElement("img");
 
+        img.src = URL.createObjectURL(file);
 
-photos.forEach(file=>{
+        img.style.width="120px";
+        img.style.margin="5px";
+        img.style.borderRadius="10px";
 
-let img=document.createElement("img");
+        preview.appendChild(img);
 
-img.src=URL.createObjectURL(file);
-
-img.style.width="120px";
-img.style.margin="5px";
-img.style.borderRadius="10px";
-
-preview.appendChild(img);
-
-});
-
+    });
 
 });
 
@@ -40,138 +40,233 @@ preview.appendChild(img);
 
 // 银河堆栈
 
-stackBtn.onclick=async function(){
+stackBtn.onclick = async function(){
 
-stackBtn.disabled=true;
+    if(photos.length < 2){
 
-stackBtn.innerHTML="处理中...";
+        alert("请至少选择2张照片");
 
+        return;
+    }
 
-if(photos.length<2){
 
-alert("请至少选择2张照片");
+    stackBtn.disabled=true;
 
-stackBtn.disabled=false;
+    stackBtn.innerHTML="处理中...";
 
-stackBtn.innerHTML="✨ 一键银河堆栈";
 
-return;
+    info.innerHTML="正在银河堆栈处理中...";
 
-}
 
+    resultBox.innerHTML="";
 
-info.innerHTML="正在银河堆栈处理中...";
-let bar=document.getElementById("progressBar");
 
-bar.style.width="10%";
+    bar.style.width="10%";
 
-let canvas=document.createElement("canvas");
 
-let ctx=canvas.getContext("2d");
 
+    try{
 
-let img=new Image();
 
+        let canvas=document.createElement("canvas");
 
-img.onload=function(){
+        let ctx=canvas.getContext("2d");
 
 
-canvas.width=img.width;
-canvas.height=img.height;
 
+        let base=new Image();
 
-// 第一张作为基础
 
-let count=1;
 
-ctx.drawImage(img,0,0);
+        base.onload=function(){
 
-bar.style.width =
-(50 + count / photos.length * 40) + "%";
 
+            canvas.width=base.width;
 
-photos.slice(1).forEach(file=>{
+            canvas.height=base.height;
 
 
-let layer=new Image();
 
+            ctx.drawImage(base,0,0);
 
-layer.onload=function(){
 
+            let count=1;
 
-ctx.drawImage(layer,0,0);
 
 
-count++;
+            let loadNext=function(index){
 
 
-if(count===photos.length){
+                if(index >= photos.length){
 
 
-ctx.globalAlpha=1;
+                    finish();
 
 
-let imageData =
-canvas.toDataURL("image/jpeg",0.95);
+                    return;
 
+                }
 
-let link=document.createElement("a");
 
-link.href=imageData;
 
-link.download="galaxy_stack.jpg";
+                let img=new Image();
 
-link.innerHTML="下载银河堆栈结果";
 
 
-let resultBox=document.getElementById("result");
+                img.onload=function(){
 
 
-let imgPreview=document.createElement("img");
+                    ctx.globalAlpha=0.35;
 
 
-imgPreview.src=imageData;
+                    ctx.drawImage(
+                        img,
+                        0,
+                        0,
+                        canvas.width,
+                        canvas.height
+                    );
 
-imgPreview.style.width="95%";
 
+                    count++;
 
-resultBox.appendChild(imgPreview);
 
-document.body.appendChild(link);
-link.style.display="block";
-link.style.margin="20px auto";
-link.style.padding="15px";
-link.style.background="#2980ff";
-link.style.color="white";
-link.style.borderRadius="12px";
-link.style.textAlign="center";
-link.style.textDecoration="none";
+                    bar.style.width =
+                    (10 + count/photos.length*80)+"%";
 
-info.innerHTML="银河堆栈完成 ✨";
-stackBtn.disabled=false;
 
-stackBtn.innerHTML="✨ 一键银河堆栈";
+                    loadNext(index+1);
 
-bar.style.width="100%";
 
-}
+                };
 
 
-};
+                img.src=
+                URL.createObjectURL(
+                    photos[index]
+                );
 
 
-layer.src=URL.createObjectURL(file);
+            };
 
 
 
-});
+            loadNext(1);
 
 
-};
 
+            function finish(){
 
-img.src=
-URL.createObjectURL(photos[0]);
+
+                ctx.globalAlpha=1;
+
+
+
+                let imageData =
+                canvas.toDataURL(
+                    "image/jpeg",
+                    0.95
+                );
+
+
+
+                let imgPreview=
+                document.createElement("img");
+
+
+                imgPreview.src=imageData;
+
+                imgPreview.style.width="95%";
+
+                imgPreview.style.borderRadius="15px";
+
+
+                resultBox.appendChild(
+                    imgPreview
+                );
+
+
+
+                let link=
+                document.createElement("a");
+
+
+                link.href=imageData;
+
+                link.download=
+                "galaxy_stack.jpg";
+
+
+                link.innerHTML=
+                "下载银河堆栈结果";
+
+
+                link.style.display="block";
+
+                link.style.margin="20px auto";
+
+                link.style.padding="15px";
+
+                link.style.background="#2980ff";
+
+                link.style.color="white";
+
+                link.style.borderRadius="12px";
+
+                link.style.textDecoration="none";
+
+
+
+                resultBox.appendChild(link);
+
+
+
+                bar.style.width="100%";
+
+
+                info.innerHTML=
+                "银河堆栈完成 ✨";
+
+
+
+                stackBtn.disabled=false;
+
+                stackBtn.innerHTML=
+                "✨ 一键银河堆栈";
+
+
+            }
+
+
+        };
+
+
+
+        base.src=
+        URL.createObjectURL(
+            photos[0]
+        );
+
+
+    }
+
+    catch(error){
+
+
+        console.log(error);
+
+
+        info.innerHTML=
+        "处理失败，请重新尝试";
+
+
+        stackBtn.disabled=false;
+
+        stackBtn.innerHTML=
+        "✨ 一键银河堆栈";
+
+
+    }
 
 
 };
